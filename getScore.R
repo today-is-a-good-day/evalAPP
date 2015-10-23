@@ -1,5 +1,27 @@
 getScore <-
 function(twittername = NULL, igname = NULL) {
+    # load instagram oauth
+    load("ig_oauth_ia")
+    token <- ig_oauth_ia$token
+    
+    # load twitter oauth 
+    load("twitterOauthSurvey.Rdata")
+    consumer_key <- my_oauth$consumerKey
+    consumer_secret <- my_oauth$consumerSecret
+    access_token <- my_oauth$oauthKey
+    access_secret <- my_oauth$oauthSecret
+    setup_twitter_oauth(consumer_key = consumer_key, consumer_secret = consumer_secret,
+                        access_token = access_token, access_secret = access_secret)
+    1
+    
+    # read in lists of words
+    pos <- readRDS("data/poswords.rds")
+    neg <- readRDS("data/negwords.rds")
+    
+    # load utility functions
+    source("hashgrep.R")
+    source("getUserMedia.R")
+    
     if (!is.null(twittername) & is.null(igname)) {
         # get most recent tweets
         user_tweets <- userTimeline(twittername, n = 100, includeRts = TRUE)
@@ -48,6 +70,7 @@ function(twittername = NULL, igname = NULL) {
     } else if (is.null(twittername) & !is.null(igname)) {
         # get user media
         user_media <- getUserMedia(igname, token = token)
+        
         # cleaning pipeline
         clean_ig <- data.frame(sapply(user_media$df.text, function(row) 
             iconv(row, "latin1", "ASCII", sub="")))
@@ -133,7 +156,8 @@ function(twittername = NULL, igname = NULL) {
         ############################ INSTAGRAM #####################################
         
         # get user media
-        user_media <- getUserMedia(igname, token = token)    
+        user_media <- getUserMedia(igname, token = token)
+        
         # cleaning pipeline
         clean_ig <- data.frame(sapply(user_media$df.text, function(row) 
             iconv(row, "latin1", "ASCII", sub="")))
@@ -170,5 +194,7 @@ function(twittername = NULL, igname = NULL) {
         score <- (igscore + twitterscore) / 2
         score
         
-    } 
+    } else 
+        print("Sorry, we can´t provide feedback as you didn´t indicate any social media profile")
+    
 }
